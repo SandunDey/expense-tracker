@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Auspify - Modern Full-Stack Expense Tracker & Financial Analytics</title>
+  <meta name="description" content="A comprehensive full-stack web application to track income, expenses, budgets, and financial summaries with interactive data visualization. Auspify Internship Task 3.">
+  <meta name="keywords" content="Expense Tracker, Personal Finance, Income Management, Financial Reports, Budget Planner">
+  <meta name="author" content="Sandun Dey">
+
+  <!-- Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236366f1'><path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 14.5h-2v-1.5H9.5a1 1 0 01-1-1v-2a1 1 0 011-1H13V9h-3V7.5h2V6h2v1.5h1.5a1 1 0 011 1v2a1 1 0 01-1 1H11v2h3v1.5h-1v1.5z'/></svg>" type="image/svg+xml">
+
+  <!-- Google Fonts & Font Awesome Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <!-- App Stylesheet -->
+  <link rel="stylesheet" href="/css/style.css">
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <header class="navbar">
+    <div class="nav-container">
+      <a href="#" class="nav-brand">
+        <div class="brand-icon">
+          <i class="fas fa-wallet"></i>
+        </div>
+        <div class="brand-text">
+          <h1>FinanceFlow</h1>
+          <span class="brand-tag">Auspify • Task 3</span>
+        </div>
+      </a>
+
+      <div class="nav-actions">
+        <!-- Theme Toggle -->
+        <button id="theme-toggle-btn" class="btn-icon" title="Toggle Light/Dark Theme">
+          <i id="theme-toggle-icon" class="fas fa-sun"></i>
+        </button>
+
+        <!-- Navigation Action Buttons (Visible when logged in) -->
+        <div id="nav-action-buttons" class="hidden" style="display: flex; gap: 0.5rem;">
+          <button id="btn-header-add-income" class="btn btn-sm btn-income">
+            <i class="fas fa-plus"></i> Income
+          </button>
+          <button id="btn-header-add-expense" class="btn btn-sm btn-expense">
+            <i class="fas fa-minus"></i> Expense
+          </button>
+        </div>
+
+        <!-- User Profile Dropdown / Card -->
+        <div id="nav-user-menu" class="user-menu hidden">
+          <img id="nav-user-avatar" src="" alt="Avatar" class="user-avatar">
+          <div class="user-details">
+            <span id="nav-user-name" class="user-name">User</span>
+            <span class="user-role">Currency: <strong id="currency-badge">$</strong></span>
+          </div>
+          <button id="logout-btn" class="btn-icon btn-sm" style="border:none; background:transparent;" title="Log Out">
+            <i class="fas fa-sign-out-alt"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===================================================================
+       AUTHENTICATION VIEW (Shown when logged out)
+       =================================================================== -->
+  <section id="auth-view" class="auth-wrapper">
+    <div class="auth-card">
+      <div class="auth-header">
+        <div class="brand-icon" style="width: 52px; height: 52px; font-size: 1.5rem;">
+          <i class="fas fa-chart-pie"></i>
+        </div>
+        <h2>FinanceFlow Tracker</h2>
+        <p>Smart income, expense & budget management platform</p>
+      </div>
+
+      <!-- Quick 1-Click Demo Account for Evaluator -->
+      <div class="demo-login-box">
+        <p><strong>Evaluation Preview Mode</strong><br>Instantly explore with seeded transactions and budgets:</p>
+        <button id="demo-login-btn" class="btn btn-primary" style="width: 100%;">
+          <i class="fas fa-bolt"></i> One-Click Demo Login
+        </button>
+      </div>
+
+      <!-- Tab Switcher -->
+      <div class="auth-tabs">
+        <button id="tab-login-btn" class="auth-tab active">Sign In</button>
+        <button id="tab-register-btn" class="auth-tab">Create Account</button>
+      </div>
+
+      <!-- Login Form -->
+      <form id="login-form">
+        <div class="form-group">
+          <label for="login-email">Email Address</label>
+          <input type="email" id="login-email" class="form-control" placeholder="name@domain.com" required value="demo@auspify.com">
+        </div>
+        <div class="form-group">
+          <label for="login-password">Password</label>
+          <input type="password" id="login-password" class="form-control" placeholder="••••••••" required value="demo1234">
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem;">
+          <i class="fas fa-sign-in-alt"></i> Sign In to Dashboard
+        </button>
+      </form>
+
+      <!-- Register Form -->
+      <form id="register-form" class="hidden">
+        <div class="form-group">
+          <label for="reg-name">Full Name</label>
+          <input type="text" id="reg-name" class="form-control" placeholder="Alex Rivera" required>
+        </div>
+        <div class="form-group">
+          <label for="reg-email">Email Address</label>
+          <input type="email" id="reg-email" class="form-control" placeholder="alex@campus.edu" required>
+        </div>
+        <div class="form-group">
+          <label for="reg-password">Password (min 6 characters)</label>
+          <input type="password" id="reg-password" class="form-control" placeholder="••••••••" required minlength="6">
+        </div>
+        <div class="form-group">
+          <label for="reg-currency">Preferred Currency</label>
+          <select id="reg-currency" class="form-control">
+            <option value="$">USD ($)</option>
+            <option value="€">EUR (€)</option>
+            <option value="£">GBP (£)</option>
+            <option value="₹">INR (₹)</option>
+            <option value="A$">AUD (A$)</option>
+            <option value="C$">CAD (C$)</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem;">
+          <i class="fas fa-user-plus"></i> Create Account
+        </button>
+      </form>
+    </div>
+  </section>
+
+  <!-- ===================================================================
+       MAIN DASHBOARD VIEW (Shown when authenticated)
+       =================================================================== -->
+  <main id="dashboard-view" class="main-wrapper hidden">
+    <!-- Dashboard Header Banner -->
+    <div class="dashboard-header">
+      <div class="header-title">
+        <h2>Financial Overview</h2>
+        <p>Monitor your cash flow, analyze expense breakdowns, and reach savings goals.</p>
+      </div>
+
+      <div class="header-quick-actions">
+        <button id="btn-add-income" class="btn btn-income">
+          <i class="fas fa-arrow-down"></i> Add Income
+        </button>
+        <button id="btn-add-expense" class="btn btn-expense">
+          <i class="fas fa-arrow-up"></i> Add Expense
+        </button>
+        <button id="btn-reset-data" class="btn btn-secondary" title="Reset default sample financial records">
+          <i class="fas fa-redo-alt"></i> Reset Demo Data
+        </button>
+      </div>
+    </div>
+
+    <!-- Summary Metrics Cards -->
+    <section class="metrics-grid">
+      <!-- Net Balance -->
+      <div class="metric-card card-balance">
+        <div class="metric-header">
+          <span>Net Balance</span>
+          <div class="metric-icon-wrap">
+            <i class="fas fa-wallet"></i>
+          </div>
+        </div>
+        <div class="metric-body">
+          <div id="metric-net-balance" class="metric-value">$0.00</div>
+        </div>
+        <div class="metric-footer">
+          <span class="badge-tag positive">
+            <i class="fas fa-shield-alt"></i> Liquid Net Worth
+          </span>
+        </div>
+      </div>
+
+      <!-- Total Income -->
+      <div class="metric-card card-income">
+        <div class="metric-header">
+          <span>Total Income</span>
+          <div class="metric-icon-wrap">
+            <i class="fas fa-arrow-trend-up"></i>
+          </div>
+        </div>
+        <div class="metric-body">
+          <div id="metric-total-income" class="metric-value">$0.00</div>
+        </div>
+        <div class="metric-footer">
+          <span id="month-income-sub" class="badge-tag positive">
+            $0.00 this month
+          </span>
+        </div>
+      </div>
+
+      <!-- Total Expenses -->
+      <div class="metric-card card-expense">
+        <div class="metric-header">
+          <span>Total Expenses</span>
+          <div class="metric-icon-wrap">
+            <i class="fas fa-arrow-trend-down"></i>
+          </div>
+        </div>
+        <div class="metric-body">
+          <div id="metric-total-expense" class="metric-value">$0.00</div>
+        </div>
+        <div class="metric-footer">
+          <span id="month-expense-sub" class="badge-tag negative">
+            $0.00 this month
+          </span>
+        </div>
+      </div>
+
+      <!-- Savings Rate -->
+      <div class="metric-card card-savings">
+        <div class="metric-header">
+          <span>Savings Rate</span>
+          <div class="metric-icon-wrap">
+            <i class="fas fa-piggy-bank"></i>
+          </div>
+        </div>
+        <div class="metric-body">
+          <div id="metric-savings-rate" class="metric-value">0%</div>
+        </div>
+        <div class="metric-footer">
+          <span id="savings-sub" class="badge-tag positive">
+            Financial Health
+          </span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Visual Charts & Analytics Section -->
+    <section class="charts-grid">
+      <!-- Monthly Cashflow Bar Chart -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3><i class="fas fa-chart-column"></i> Monthly Cash Flow (Income vs Expenses)</h3>
+        </div>
+        <div class="chart-container">
+          <canvas id="monthlyCashflowChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Category Distribution Doughnut Chart -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3><i class="fas fa-chart-pie"></i> Expense Breakdown by Category</h3>
+        </div>
+        <div class="chart-container">
+          <canvas id="categoryDoughnutChart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- Budget Planning & Health Status -->
+    <section class="budgets-section">
+      <div class="section-header">
+        <h3><i class="fas fa-bullseye"></i> Monthly Category Budgets</h3>
+        <button id="btn-set-budget" class="btn btn-sm btn-secondary">
+          <i class="fas fa-plus"></i> Set Budget Goal
+        </button>
+      </div>
+
+      <div id="budgets-list-container" class="budgets-grid">
+        <!-- Rendered dynamically -->
+      </div>
+    </section>
+
+    <!-- Transactions List & Management -->
+    <section class="transactions-section">
+      <div class="filters-bar">
+        <!-- Type Tabs -->
+        <div class="tabs-group">
+          <button class="tab-btn active" data-filter-tab="All">All Transactions</button>
+          <button class="tab-btn" data-filter-tab="expense">Expenses Only</button>
+          <button class="tab-btn" data-filter-tab="income">Income Only</button>
+        </div>
+
+        <!-- Filters & Search Controls -->
+        <div class="filter-controls">
+          <!-- Search Input -->
+          <div class="search-input-wrap">
+            <i class="fas fa-search"></i>
+            <input type="text" id="tx-search-input" placeholder="Search transactions...">
+          </div>
+
+          <!-- Category Filter -->
+          <select id="category-filter-select" class="filter-select">
+            <option value="All">All Categories</option>
+          </select>
+
+          <!-- Date Range Filter -->
+          <select id="date-filter-select" class="filter-select">
+            <option value="all">All Time</option>
+            <option value="this-month">This Month</option>
+            <option value="last-30">Last 30 Days</option>
+            <option value="this-year">This Year</option>
+          </select>
+
+          <!-- Sorting -->
+          <select id="sort-filter-select" class="filter-select">
+            <option value="date-DESC">Date: Newest First</option>
+            <option value="date-ASC">Date: Oldest First</option>
+            <option value="amount-DESC">Amount: High to Low</option>
+            <option value="amount-ASC">Amount: Low to High</option>
+          </select>
+
+          <!-- Export Dropdown -->
+          <button id="btn-export-csv" class="btn btn-sm btn-secondary" title="Export to CSV">
+            <i class="fas fa-file-csv"></i> CSV
+          </button>
+          <button id="btn-export-json" class="btn btn-sm btn-secondary" title="Export to JSON">
+            <i class="fas fa-file-code"></i> JSON
+          </button>
+        </div>
+      </div>
+
+      <!-- Transactions Table -->
+      <div id="transactions-table-wrap" class="table-responsive">
+        <table class="transactions-table">
+          <thead>
+            <tr>
+              <th>Transaction</th>
+              <th>Category</th>
+              <th>Date</th>
+              <th>Payment Method</th>
+              <th class="text-right">Amount</th>
+              <th class="text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="transactions-table-body">
+            <!-- Dynamically populated -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Empty State -->
+      <div id="transactions-empty-state" class="empty-state hidden">
+        <div class="empty-icon">
+          <i class="fas fa-receipt"></i>
+        </div>
+        <h4>No transactions found</h4>
+        <p>No financial records matched your active filter or search query. Try broadening your filter or record a new transaction.</p>
+      </div>
+
+      <!-- Pagination Footer -->
+      <div class="pagination-bar">
+        <div id="page-info-text">Showing page 1 of 1</div>
+        <div class="pagination-controls">
+          <button id="prev-page-btn" class="page-btn" disabled>
+            <i class="fas fa-chevron-left"></i>
+          </button>
+          <button id="next-page-btn" class="page-btn" disabled>
+            <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===================================================================
+       MODAL: ADD / EDIT TRANSACTION
+       =================================================================== -->
+  <div id="transaction-modal" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="tx-modal-title">Record Transaction</h3>
+        <button id="tx-modal-close" class="modal-close-btn">&times;</button>
+      </div>
+
+      <form id="transaction-form">
+        <div class="modal-body">
+          <!-- Type Toggle: Expense vs Income -->
+          <div class="type-toggle-group">
+            <button type="button" id="tx-type-expense" class="type-btn active expense" data-active="true">
+              <i class="fas fa-arrow-up"></i> Expense
+            </button>
+            <button type="button" id="tx-type-income" class="type-btn" data-active="false">
+              <i class="fas fa-arrow-down"></i> Income
+            </button>
+          </div>
+
+          <!-- Title -->
+          <div class="form-group">
+            <label for="tx-title">Title / Description *</label>
+            <input type="text" id="tx-title" class="form-control" placeholder="e.g. Trader Joe's, Tech Salary, Uber" required>
+          </div>
+
+          <!-- Amount -->
+          <div class="form-group">
+            <label for="tx-amount">Amount *</label>
+            <input type="number" id="tx-amount" class="form-control" placeholder="0.00" step="0.01" min="0.01" required>
+          </div>
+
+          <!-- Category -->
+          <div class="form-group">
+            <label for="tx-category">Category *</label>
+            <select id="tx-category" class="form-control" required>
+              <!-- Filled via JavaScript -->
+            </select>
+          </div>
+
+          <!-- Date -->
+          <div class="form-group">
+            <label for="tx-date">Date *</label>
+            <input type="date" id="tx-date" class="form-control" required>
+          </div>
+
+          <!-- Payment Method -->
+          <div class="form-group">
+            <label for="tx-payment">Payment Method</label>
+            <select id="tx-payment" class="form-control">
+              <option value="Credit Card">Credit Card</option>
+              <option value="Debit Card">Debit Card</option>
+              <option value="Bank Transfer">Bank Transfer</option>
+              <option value="Direct Deposit">Direct Deposit</option>
+              <option value="Cash">Cash</option>
+              <option value="Apple Pay">Apple Pay</option>
+              <option value="Google Pay">Google Pay</option>
+              <option value="PayPal">PayPal</option>
+              <option value="UPI / Wallet">UPI / Wallet</option>
+            </select>
+          </div>
+
+          <!-- Notes -->
+          <div class="form-group">
+            <label for="tx-notes">Notes / Memo (Optional)</label>
+            <textarea id="tx-notes" class="form-control" rows="2" placeholder="Add additional details or receipt remarks..."></textarea>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" id="tx-modal-cancel" class="btn btn-secondary">Cancel</button>
+          <button type="submit" id="tx-modal-submit" class="btn btn-primary">
+            <i class="fas fa-check"></i> Save Transaction
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===================================================================
+       MODAL: SET BUDGET GOAL
+       =================================================================== -->
+  <div id="budget-modal" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Set Category Budget Goal</h3>
+        <button id="budget-modal-close" class="modal-close-btn">&times;</button>
+      </div>
+
+      <form id="budget-form">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="budget-category">Expense Category *</label>
+            <select id="budget-category" class="form-control" required>
+              <!-- Filled via JavaScript -->
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="budget-limit">Monthly Limit Amount *</label>
+            <input type="number" id="budget-limit" class="form-control" placeholder="500.00" step="1" min="1" required>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" id="budget-modal-cancel" class="btn btn-secondary">Cancel</button>
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-check"></i> Save Budget
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Scripts -->
+  <script src="/js/api.js"></script>
+  <script src="/js/charts.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>
